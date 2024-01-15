@@ -2457,6 +2457,12 @@ public final class System {
             public void addEnableNativeAccessToAllUnnamed() {
                 Module.implAddEnableNativeAccessToAllUnnamed();
             }
+            public Module addEnableUnsafeAccess(Module m) {
+                return m.implAddEnableUnsafeAccess();
+            }
+            public void addEnableUnsafeAccessToAllUnnamed() {
+                Module.implAddEnableUnsafeAccessToAllUnnamed();
+            }
             public void ensureNativeAccess(Module m, Class<?> owner, String methodName, Class<?> currentClass) {
                 m.ensureNativeAccess(owner, methodName, currentClass);
             }

@@ -1793,6 +1793,7 @@ unsigned int addopens_count = 0;
 unsigned int addmods_count = 0;
 unsigned int patch_mod_count = 0;
 unsigned int enable_native_access_count = 0;
+unsigned int enable_unsafe_access_count = 0;
 
 // Check the consistency of vm_init_args
 bool Arguments::check_vm_args_consistency() {
@@ -2262,6 +2263,10 @@ jint Arguments::parse_each_vm_init_arg(const JavaVMInitArgs* args, bool* patch_m
       }
     } else if (match_option(option, "--enable-native-access=", &tail)) {
       if (!create_numbered_module_property("jdk.module.enable.native.access", tail, enable_native_access_count++)) {
+        return JNI_ENOMEM;
+      }
+    } else if (match_option(option, "--enable-unsafe-access=", &tail)) {
+      if (!create_numbered_module_property("jdk.module.enable.unsafe.access", tail, enable_unsafe_access_count++)) {
         return JNI_ENOMEM;
       }
     } else if (match_option(option, "--limit-modules=", &tail)) {

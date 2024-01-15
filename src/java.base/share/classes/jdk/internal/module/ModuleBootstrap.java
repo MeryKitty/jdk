@@ -267,6 +267,7 @@ public final class ModuleBootstrap {
 
         Module baseModule = Modules.defineModule(null, base.descriptor(), baseUri);
         JLA.addEnableNativeAccess(baseModule);
+        JLA.addEnableUnsafeAccess(baseModule);
 
         // Step 2a: Scan all modules when --validate-modules specified
 
@@ -458,7 +459,7 @@ public final class ModuleBootstrap {
         boolean extraExportsOrOpens = addExtraExportsAndOpens(bootLayer);
 
         // add enable native access
-        addEnableNativeAccess(bootLayer);
+        addEnableAccess(bootLayer);
 
         Counters.add("jdk.module.boot.7.adjustModulesTime");
 
@@ -789,20 +790,22 @@ public final class ModuleBootstrap {
 
     private static final boolean HAS_ENABLE_NATIVE_ACCESS_FLAG;
     private static final Set<String> NATIVE_ACCESS_MODULES;
+    private static final Set<String> UNSAFE_ACCESS_MODULES;
 
     public static boolean hasEnableNativeAccessFlag() {
         return HAS_ENABLE_NATIVE_ACCESS_FLAG;
     }
 
     static {
-        NATIVE_ACCESS_MODULES = decodeEnableNativeAccess();
+        NATIVE_ACCESS_MODULES = decodeEnableAccess("jdk.module.enable.native.access.");
+        UNSAFE_ACCESS_MODULES = decodeEnableAccess("jdk.module.enable.unsafe.access.");
         HAS_ENABLE_NATIVE_ACCESS_FLAG = !NATIVE_ACCESS_MODULES.isEmpty();
     }
 
     /**
-     * Process the --enable-native-access option to grant access to restricted methods to selected modules.
+     * Process the --enable-native-access and --enable-unsafe-access options.
      */
-    private static void addEnableNativeAccess(ModuleLayer layer) {
+    private static void addEnableAccess(ModuleLayer layer) {
         for (String name : NATIVE_ACCESS_MODULES) {
             if (name.equals("ALL-UNNAMED")) {
                 JLA.addEnableNativeAccessToAllUnnamed();
@@ -815,13 +818,25 @@ public final class ModuleBootstrap {
                 }
             }
         }
+        for (String name : UNSAFE_ACCESS_MODULES) {
+            if (name.equals("ALL-UNNAMED")) {
+                JLA.addEnableUnsafeAccessToAllUnnamed();
+            } else {
+                Optional<Module> module = layer.findModule(name);
+                if (module.isPresent()) {
+                    JLA.addEnableUnsafeAccess(module.get());
+                } else {
+                    warnUnknownModule(ENABLE_UNSAFE_ACCESS, name);
+                }
+            }
+        }
     }
 
     /**
-     * Returns the set of module names specified by --enable-native-access options.
+     * Returns the set of module names specified by --enable-native-access or
+     * --enable-unsafe-access options.
      */
-    private static Set<String> decodeEnableNativeAccess() {
-        String prefix = "jdk.module.enable.native.access.";
+    private static Set<String> decodeEnableAccess(String prefix) {
         int index = 0;
         // the system property is removed after decoding
         String value = getAndRemoveProperty(prefix + index);
@@ -964,6 +979,7 @@ public final class ModuleBootstrap {
     private static final String ADD_READS    = "--add-reads";
     private static final String PATCH_MODULE = "--patch-module";
     private static final String ENABLE_NATIVE_ACCESS = "--enable-native-access";
+    private static final String ENABLE_UNSAFE_ACCESS = "--enable-unsafe-access";
 
     /*
      * Returns the command-line option name corresponds to the specified

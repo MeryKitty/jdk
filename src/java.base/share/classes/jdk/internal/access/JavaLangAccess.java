@@ -275,6 +275,16 @@ public interface JavaLangAccess {
     void addEnableNativeAccessToAllUnnamed();
 
     /**
+     * Updates module m to allow unchecked accesses.
+     */
+    Module addEnableUnsafeAccess(Module m);
+
+    /**
+     * Updates all unnamed modules to allow unchecked accesses.
+     */
+    void addEnableUnsafeAccessToAllUnnamed();
+
+    /**
      * Ensure that the given module has native access. If not, warn or
      * throw exception depending on the configuration.
      */
